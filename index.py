@@ -1,52 +1,66 @@
-import urllib.request
-import urllib.parse
+# -*- coding:utf-8 -*-  
+import requests
 import re
 import json
 import datetime
 import chardet
-f = urllib.request.urlopen("http://www.cnblogs.com/jenry/archive/2010/05/27/1744861.html")
-html = f.read().decode('utf-8')
-print(chardet.info(f))
-exit()
-reg = re.compile('<a.*?>(.+)<\/a>',re.I)
-matchs = reg.findall(html)
-handle = open('dics.txt','r+')
-pydis = handle.read()
 
+html = requests.get('http://blog.itpub.net/29625597/viewspace-1148243/')
+
+source = html.content
+#print(type(html.content))
+reg = re.compile('<a.*?>(.+)<\/a>',re.I)
+matchs = reg.findall(source)
+handle = open('dics.dat','r+')
+pydis = handle.read()
+print(type(pydis))
+#print(matchs)
 hd = open('domain'+datetime.datetime.now().strftime('%Y-%m-%d')+'.txt','w+')
-#matchs = ['所首有词汇一页浏览', '网络词汇大全']
+
 suffix = ['.com','.cn','.net']
 for i in matchs:
     strs = ''
     t = 0
     if len(i)<10:
         while(t<len(i)):
-            pos = pydis.find(i[t])
+            print(i)
+            #exit()
+            pos = pydis.find(str(i[t]))
+            
             if ord(i[t])>200 and pos != -1:
                 b = 1
                 while(pydis[pos+b] != ','):
                     strs = strs + pydis[pos+b:pos+b+1]
                     b +=1
-
+                    #print(pydis[pos+b:pos+b+1])
+                    #exit()
             else:
                 strs = strs + i[t]
+            print(strs)
+            #exit()
             t += 1
         #str = str + '  '+
         if len(strs)<10:
+            
             l = 0
             for a in suffix:
                 url = 'http://checkdomain.xinnet.com/domainCheck?callbackparam=jQuery17203308473502664542_1458194172038&searchRandom=8&prefix='+strs+'&suffix='+a+'&_=1458194245054'
-                f = urllib.request.urlopen(url)
-                jsonh = f.read().decode('utf-8')
+                print(url)
+                #exit()
+                f = requests.get(url)
+                #print(f.text)
+                #exit()
+                jsonh = f.content
                 regg = re.compile('\(\[(.+)\]\)',re.I)
                 jsonh = regg.findall(jsonh)
                 
                 jsonh = json.loads(jsonh[0])
-                print(jsonh)
+                #print(jsonh)
                 #exit()
-                if len(jsonh['result'][0]['yes'])>0:
-                       line = i+"\t"+strs+a+"\t"+str(jsonh['result'][0]['yes'][0]['price'])+"\n"
-                       #print(line)
+
+                if len(str(jsonh['result'][0]['yes']))>0:
+                       line = i+"\t"+strs+str(a)+"\t"+"\n"
+                       print(line)
                        #exit()
                        hd.writelines(line)
                 #print(len(jsonh['result'][0]['yes']))
